@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: pyhon-test
+
+  Sample SAM Template for pyhon-test
+
+Globals:
+  Function:
+    MemorySize: 128
+    Timeout: 15
+    # Environment:
+    #   Variables:
+    #     USER_TABLE: !Ref userTable
+
+Resources:
+  userTable:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      # BillingMode: PAY_PER_REQUEST
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      TableName: user
+
+  userFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: hello_world/
+      Handler: app.lambda_handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref userTable
+      Runtime: python3.9
+      Events:
+        ApiPost:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: POST
+        ApiGet:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: get
+        ApiGetOne:
+          Type: Api
+          Properties:
+            Path: /users/{id}
+            Method: get
+        ApiDelete:
+          Type: Api
+          Properties:
+            Path: /users/{id}
+            Method: delete
+        ApiUpdate:
+          Type: Api
+          Properties:
+            Path: /users/{id}
+            Method: put
+# Outputs:
+#   HelloWorldApi:
+#     Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+#     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
+#   HelloWorldFunction:
+#     Description: "Hello World Lambda Function ARN"
+#     Value: !GetAtt HelloWorldFunction.Arn
+#   HelloWorldFunctionIamRole:
+#     Description: "Implicit IAM Role created for Hello World function"
+#     Value: !GetAtt HelloWorldFunctionRole.Arn
